@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext"
+        xmlns:pro="http://www.liquibase.org/xml/ns/pro"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd
+        http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd
+        http://www.liquibase.org/xml/ns/pro http://www.liquibase.org/xml/ns/pro/liquibase-pro-3.8.xsd
+        http://www.liquibase.org/xml/ns/pro
+http://www.liquibase.org/xml/ns/dbchangelog
+http://www.liquibase.org/xml/ns/dbchangelog-ext
+http://www.liquibase.org/xml/ns/pro">
+
+    <changeSet id="creating district table" author="manager">
+        <createTable tableName="district">
+            <column name="district_id" type="INT" autoIncrement="true">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="district_pk"/>
+            </column>
+            <column name="name" type="VARCHAR"/>
+            <column name="code" type="INT"/>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="creating cinema table" author="manager">
+        <createTable tableName="cinema">
+            <column name="cinema_id" type="INT" autoIncrement="true">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="cinema_pk"/>
+            </column>
+            <column name="name" type="VARCHAR"/>
+            <column name="rating" type="INT"/>
+            <column name="district_id" type="INT">
+                <constraints nullable="false" foreignKeyName="fk_district_id" references="district(district_id)"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="creating customer table" author="manager">
+        <createTable tableName="customer">
+            <column name="customer_id" type="INT" autoIncrement="true">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="customer_pk"/>
+            </column>
+            <column name="first_name" type="VARCHAR"/>
+            <column name="last_name" type="VARCHAR"/>
+            <column name="gender" type="CHAR"/>
+            <column name="email" type="VARCHAR"/>
+            <column name="dob" type="DATE"/>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="creating index on customer table" author="manager">
+        <createIndex tableName="customer" indexName="index_first_name">
+            <column name="first_name"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="creating lnk_cinema_to_customer" author="manager">
+        <createTable tableName="lnk_cinema_to_customer">
+            <column name="id" type="INT" autoIncrement="true">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="lnk_pk"/>
+            </column>
+            <column name="cinema_id" type="INT">
+                <constraints nullable="false" foreignKeyName="fk_cinema_id" references="cinema(cinema_id)"/>
+            </column>
+            <column name="customer_id" type="INT">
+                <constraints nullable="false" foreignKeyName="fk_customer_id" references="customer(customer_id)"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="filling the district table" author="manager">
+        <insert tableName="district">
+            <column name="name" value="Центральный"/>
+            <column name="code" value="220068"/>
+        </insert>
+        <insert tableName="district">
+            <column name="name" value="Первомайский"/>
+            <column name="code" value="220076"/>
+        </insert>
+<!--        <rollback>-->
+<!--            <delete tableName="district">-->
+<!--                <where>code in (220068,220076)</where>-->
+<!--            </delete>-->
+<!--        </rollback>-->
+    </changeSet>
+
+    <changeSet id="filling the cinema table" author="manager">
+        <insert tableName="cinema">
+            <column name="name" value="Silver screen"/>
+            <column name="rating" value="170"/>
+            <column name="district_id" valueComputed="(SELECT district_id FROM district where code in ('220068'))"/>
+        </insert>
+        <insert tableName="cinema">
+            <column name="name" value="Ракета"/>
+            <column name="rating" value="90"/>
+            <column name="district_id" valueComputed="(SELECT district_id FROM district where code=220068)"/>
+        </insert>
+        <insert tableName="cinema">
+            <column name="name" value="Глобал"/>
+            <column name="rating" value="125"/>
+            <column name="district_id" valueComputed="(SELECT district_id FROM district where code=220076)"/>
+        </insert>
+        <insert tableName="cinema">
+            <column name="name" value="Мир"/>
+            <column name="rating" value="165"/>
+            <column name="district_id" valueComputed="(SELECT district_id FROM district where code=220076)"/>
+        </insert>
+        <!--        <rollback>-->
+        <!--            <delete tableName="cinema">-->
+        <!--                <where>name in ('Silver screen','Ракета','Глобал','Мир')</where>-->
+        <!--            </delete>-->
+        <!--        </rollback>-->
+    </changeSet>
+
+    <!-- Как правильно поменять индекс с first_name на last_name-->
+
+    <changeSet id="remove index" author="manager">
+        <dropIndex tableName="customer" indexName="index_first_name"/>
+    </changeSet>
+    <!---->
+    <changeSet id="creating index (last_name) on customer table" author="manager">
+        <createIndex tableName="customer" indexName="index_last_name">
+            <column name="last_name"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>
